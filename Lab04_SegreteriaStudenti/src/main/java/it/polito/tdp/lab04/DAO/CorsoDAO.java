@@ -12,14 +12,16 @@ import it.polito.tdp.lab04.model.Studente;
 
 public class CorsoDAO {
 	
-	/*
-	 * Ottengo tutti i corsi salvati nel Db
-	 */
+	StudenteDAO studenteDao = new StudenteDAO();
+	
 	public List<Corso> getTuttiICorsi() {
 
 		final String sql = "SELECT * FROM corso";
 
 		List<Corso> corsi = new LinkedList<Corso>();
+		Corso cc = null;
+		corsi.add(cc);
+
 
 		try {
 			Connection conn = ConnectDB.getConnection();
@@ -34,12 +36,15 @@ public class CorsoDAO {
 				String nome = rs.getString("nome");
 				int periodoDidattico = rs.getInt("pd");
 
-				System.out.println(codins + " " + numeroCrediti + " " + nome + " " + periodoDidattico);
+				//System.out.println(codins + " " + numeroCrediti + " " + nome + " " + periodoDidattico);
 
 				// Crea un nuovo JAVA Bean Corso
 				// Aggiungi il nuovo oggetto Corso alla lista corsi
+				Corso c = new Corso(codins, numeroCrediti, nome, periodoDidattico);
+				corsi.add(c);
 			}
-
+			rs.close();
+			st.close();
 			conn.close();
 			
 			return corsi;
@@ -55,15 +60,46 @@ public class CorsoDAO {
 	/*
 	 * Dato un codice insegnamento, ottengo il corso
 	 */
-	public void getCorso(Corso corso) {
-		// TODO
+	public Corso getCorso(String codins) {
+		for(Corso c : this.getTuttiICorsi()) {
+			if(codins.equals(c.getCodins())) {
+				return c;
+			}
+		}
+		return null;
 	}
 
 	/*
 	 * Ottengo tutti gli studenti iscritti al Corso
 	 */
-	public void getStudentiIscrittiAlCorso(Corso corso) {
-		// TODO
+	public List<Studente> getStudentiIscrittiAlCorso(Corso corso) {
+		final String sql = "SELECT * "
+				+ "FROM iscrizione "
+				+ "WHERE codins = ?";
+
+		List<Studente> studenti = new LinkedList<Studente>();
+		
+		try {
+			Connection conn = ConnectDB.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setString(1, corso.getCodins());
+			ResultSet rs = st.executeQuery();
+
+			while (rs.next()) {
+				int matricola = rs.getInt("matricola");
+				Studente s = studenteDao.cercaStudente(matricola);
+				studenti.add(s);
+			}
+			rs.close();
+			st.close();
+			conn.close();
+			
+			return studenti;
+			
+		} catch (SQLException e) {
+			// e.printStackTrace();
+			throw new RuntimeException("Errore Db", e);
+		}
 	}
 
 	/*
