@@ -8,12 +8,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 import it.polito.tdp.lab04.model.Corso;
+import it.polito.tdp.lab04.model.Model;
 import it.polito.tdp.lab04.model.Studente;
 
 public class StudenteDAO {
 	
-	CorsoDAO corsoDao = new CorsoDAO();
-
+	
 	public List<Studente> getTuttiGliStudenti() {
 
 		final String sql = "SELECT * FROM studente";
@@ -52,7 +52,7 @@ public class StudenteDAO {
 		}
 	}
 	
-	public Studente cercaStudente(int matricola) {
+	public Studente getStudente(int matricola) {
 		for(Studente s : this.getTuttiGliStudenti()) {
 			if(s.getMatricola() == matricola) {
 				return s;
@@ -63,10 +63,11 @@ public class StudenteDAO {
 	
 	public List<Corso> getCorsiPerStudente(Studente studente) {
 		final String sql = "SELECT * "
-				+ "FROM iscrizione "
-				+ "WHERE matricola = ?";
-
+				+ "FROM iscrizione, corso "
+				+ "WHERE iscrizione.codins = corso.codins AND matricola = ?";
+		
 		List<Corso> corsi = new LinkedList<Corso>();
+
 		
 		try {
 			Connection conn = ConnectDB.getConnection();
@@ -75,8 +76,7 @@ public class StudenteDAO {
 			ResultSet rs = st.executeQuery();
 
 			while (rs.next()) {
-				String codins = rs.getString("codins");
-				Corso c = corsoDao.getCorso(codins);
+				Corso c = new Corso(rs.getString("codins"), rs.getInt("crediti"), rs.getString("nome"), rs.getInt("pd"));				
 				corsi.add(c);
 			}
 			rs.close();
@@ -92,4 +92,46 @@ public class StudenteDAO {
 			throw new RuntimeException("Errore Db", e);
 		}
 	}
+	
+	public boolean iscriviStudenteACorso(Studente studente, Corso corso) {
+		final String sql = "SELECT codins FROM iscrizione WHERE codins = ? AND matricola = ?";
+		
+		
+		try {
+			Connection conn = ConnectDB.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setString(1, corso.getCodins());
+			st.setInt(2, studente.getMatricola());
+			ResultSet rs = st.executeQuery();
+
+			if(rs.next()) {
+				rs.close();
+				st.close();
+				conn.close();
+				return true;
+			}
+			else {
+				rs.close();
+				st.close();
+				
+				final String sql2 = "INSERT INTO iscrizione VALUES (?, ?)";
+				PreparedStatement st2 = conn.prepareStatement(sql2);
+				st2.setString(1, corso.getCodins());
+				st2.setInt(2, studente.getMatricola());
+				ResultSet rs2 = st2.executeQuery();
+				
+				rs2.close();
+				st2.close();
+				conn.close();
+				
+				return false;
+			}
+			
+			
+		} catch (SQLException e) {
+			// e.printStackTrace();
+			throw new RuntimeException("Errore Db", e);
+		}
+	}
+	
 }

@@ -18,8 +18,7 @@ import javafx.scene.control.TextField;
 public class FXMLController {
 	
 	Model model;
-	CorsoDAO corsoDao = new CorsoDAO();
-	StudenteDAO studenteDao = new StudenteDAO();
+	
 
     @FXML
     private ResourceBundle resources;
@@ -59,18 +58,39 @@ public class FXMLController {
 
     @FXML
     void doCercaCorsi(ActionEvent event) {
+    	this.txtNome.clear();
+    	this.txtCognome.clear();
+		this.txtResult.clear();
+    	String m = txtMatricola.getText();
+    	int matricola;
+    	String s = "";
+    	try {
+    		matricola = Integer.parseInt(m);
+    	}catch(NumberFormatException e) {
+    		txtResult.setText("Errore nella scrittura della matricola");
+    		return;
+    	}
     	
+   
+   		Studente studente = model.getStudente(matricola);
+   		for(Corso c : model.getCorsiPerStudente(studente)) {
+   			s += c.toString()+"\n";   		
+    	}
+    	txtResult.setText(s);
     }
 
     @FXML
     void doCercaIscritti(ActionEvent event) {
+    	this.txtNome.clear();
+    	this.txtCognome.clear();
+		this.txtResult.clear();
     	Corso corso = boxCorsi.getValue();
     	if(corso == null) {
     		txtResult.setText("Selezionare un corso");
     		return;
     	}
     	String studenti = "";
-    	for(Studente s : corsoDao.getStudentiIscrittiAlCorso(corso)) {
+    	for(Studente s : model.getStudentiIscrittiAlCorso(corso)) {
     		studenti += s.toString()+"\n";
     	}
     	txtResult.setText(studenti);
@@ -78,7 +98,38 @@ public class FXMLController {
 
     @FXML
     void doIscrivi(ActionEvent event) {
-
+    	this.txtNome.clear();
+    	this.txtCognome.clear();
+		this.txtResult.clear();
+    	Corso corso = boxCorsi.getValue();
+    	String m = txtMatricola.getText();
+    	boolean check = false;
+    	int matricola;
+    	try {
+    		matricola = Integer.parseInt(m);
+    	}catch(NumberFormatException e) {
+    		txtResult.setText("Errore nella scrittura della matricola");
+    		return;
+    	}
+    	Studente studente = model.getStudente(matricola);
+    	if(corso == null) {
+    		txtResult.setText("Selezionare un corso");
+    		return;
+    	}
+    	else { 		
+    		for(Corso c : model.getCorsiPerStudente(studente)) {
+    			if(c.equals(corso)) {
+    				check = true;
+    			}
+    		}
+    	}
+    	if(check == true) {
+    		txtResult.setText("Studente già iscritto a questo corso");
+    	} else {
+    		model.iscriviStudenteACorso(studente, corso);
+    		txtResult.setText("Lo studente è stato iscritto a questo corso");
+    	}
+    	
     }
 
     @FXML
@@ -100,7 +151,7 @@ public class FXMLController {
     		txtResult.setText("Compilare il campo matricola");
     	}
     	else {
-    		for(Studente s : studenteDao.getTuttiGliStudenti()) {
+    		for(Studente s : model.getTuttiGliStudenti()) {
     			if(matricola == s.getMatricola()) {
     				this.txtNome.setText(s.getNome());
     				this.txtCognome.setText(s.getCognome());
@@ -123,7 +174,7 @@ public class FXMLController {
     
     public void setModel(Model m) {
     	this.model = m;
-      	boxCorsi.getItems().addAll(corsoDao.getTuttiICorsi());
+      	boxCorsi.getItems().addAll(model.getTuttiICorsi());
     }
 
     @FXML
