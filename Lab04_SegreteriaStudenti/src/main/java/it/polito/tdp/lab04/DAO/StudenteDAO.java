@@ -116,11 +116,11 @@ public class StudenteDAO {
 				
 				final String sql2 = "INSERT INTO iscrizione VALUES (?, ?)";
 				PreparedStatement st2 = conn.prepareStatement(sql2);
-				st2.setString(1, corso.getCodins());
-				st2.setInt(2, studente.getMatricola());
-				ResultSet rs2 = st2.executeQuery();
+				st2.setString(2, corso.getCodins());
+				st2.setInt(1, studente.getMatricola());
+				st2.executeUpdate(sql2);
 				
-				rs2.close();
+				//rs2.close();
 				st2.close();
 				conn.close();
 				
