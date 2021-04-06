@@ -118,7 +118,7 @@ public class StudenteDAO {
 				PreparedStatement st2 = conn.prepareStatement(sql2);
 				st2.setString(2, corso.getCodins());
 				st2.setInt(1, studente.getMatricola());
-				st2.executeUpdate(sql2);
+				st2.executeUpdate();
 				
 				//rs2.close();
 				st2.close();
