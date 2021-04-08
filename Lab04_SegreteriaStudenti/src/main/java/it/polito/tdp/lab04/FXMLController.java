@@ -71,7 +71,10 @@ public class FXMLController {
     		return;
     	}
     	
-   
+    	if(model.getStudente(matricola) == null) {
+    		txtResult.setText("Matricola non esistente");
+    		return;
+    	}
    		Studente studente = model.getStudente(matricola);
    		for(Corso c : model.getCorsiPerStudente(studente)) {
    			s += c.toString()+"\n";   		
@@ -109,6 +112,11 @@ public class FXMLController {
     		matricola = Integer.parseInt(m);
     	}catch(NumberFormatException e) {
     		txtResult.setText("Errore nella scrittura della matricola");
+    		return;
+    	}
+    	
+    	if(model.getStudente(matricola) == null) {
+    		txtResult.setText("Matricola non esistente");
     		return;
     	}
     	Studente studente = model.getStudente(matricola);
